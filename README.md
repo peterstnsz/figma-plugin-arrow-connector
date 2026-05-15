@@ -1,21 +1,29 @@
 # Figma Plugin — Arrow Connector
 
-A no-UI Figma plugin that connects two selected frames (or any nodes) with a directional arrow using Figma's native `ConnectorNode` API.
+A no-UI Figma plugin that connects two selected frames with a directional arrow by cloning a `ConnectorNode` template pasted from FigJam.
 
-## Features
+> **Why this approach?** `figma.createConnector()` is FigJam-only and not available in Figma Design files. However, a ConnectorNode *pasted* from FigJam into a Figma file is valid and fully editable — so we clone it and rewire its endpoints.
 
-- Select exactly two frames/layers and run the command to instantly draw an elbowed arrow connector between them
-- Uses Figma's built-in `ConnectorNode` (same as the native connector tool) — fully editable after creation
-- Arrow goes from the first selected item → second selected item
-- Auto-magnet endpoints that snap to the nearest edge
-- No plugin UI — runs entirely from the command palette
+## One-Time Setup
+
+1. Open a **FigJam** file
+2. Draw any connector arrow
+3. Copy it (`Cmd/Ctrl + C`)
+4. Paste it into your **Figma Design** file (`Cmd/Ctrl + V`)
+5. Leave it somewhere out of the way (e.g. a corner of the canvas or a dedicated page)
+
+This pasted connector is your **template** — style it however you like (colour, weight, line type). Every arrow the plugin creates will inherit that style.
 
 ## Usage
 
-1. Select two frames or layers in Figma
+1. Select **3 items in order**:
+   - First: the **ConnectorNode template** (your pasted FigJam connector)
+   - Second: the **source frame** (arrow starts here)
+   - Third: the **target frame** (arrow ends here)
 2. Open the command palette (`Cmd/Ctrl + /`)
-3. Search for **"Connect frames with arrow"**
-4. Hit Enter — done
+3. Search **"Connect frames with arrow"** and hit Enter
+
+The plugin clones the template, rewires both endpoints to your selected frames, and names the new layer `Arrow: [source] → [target]`.
 
 ## Local Development
 
@@ -24,34 +32,11 @@ A no-UI Figma plugin that connects two selected frames (or any nodes) with a dir
 - [Node.js](https://nodejs.org/) (v18+)
 - A Figma desktop account
 
-### Setup
-
-```bash
-# Clone the repo
-git clone https://github.com/peterstnsz/figma-plugin-arrow-connector.git
-cd figma-plugin-arrow-connector
-```
-
-No build step is required — `code.js` is the compiled output and is ready to use.
-
 ### Loading in Figma
 
 1. Open Figma Desktop
 2. Go to **Plugins → Development → Import plugin from manifest…**
 3. Select the `manifest.json` file from this repo
-4. The plugin will now appear under **Plugins → Development**
-
-## Connector Styling Defaults
-
-| Property | Value |
-|---|---|
-| Line type | Elbowed |
-| Stroke weight | 2px |
-| Stroke colour | `#1A1A1A` (near-black) |
-| Start cap | None |
-| End cap | Equilateral arrow |
-
-You can change these defaults in `code.ts` / `code.js`.
 
 ## File Structure
 
@@ -64,6 +49,6 @@ You can change these defaults in `code.ts` / `code.js`.
 
 ## Notes
 
-- `ConnectorNode` is only available in Figma (not FigJam) design files
-- The `AUTO` magnet setting lets Figma pick the best attachment point automatically
-- Selection order matters: the arrow points **from** the first selected item **to** the second
+- The template connector is **never deleted** — it stays as a reusable source
+- You can keep multiple styled templates (thick, thin, dashed, etc.) and pick the one you want as your first selection
+- Selection order matters: source → target determines arrow direction
