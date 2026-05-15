@@ -1,32 +1,39 @@
 # Figma Plugin — Arrow Connector
 
-A no-UI Figma plugin that connects two selected frames with a directional arrow by cloning a `ConnectorNode` template pasted from FigJam.
+A no-UI Figma plugin that draws a styled arrow between two selected frames.
 
-> **Why this approach?** `figma.createConnector()` is FigJam-only. However, a ConnectorNode *pasted* from FigJam into Figma is valid and fully manipulable — so we clone it and rewire its endpoints.
+> **Note on ConnectorNode:** Both `figma.createConnector()` and `ConnectorNode.clone()` are blocked in Figma Design files by the Figma API. The plugin draws a vector arrow (shaft + arrowhead) and reads stroke style from a saved template node.
 
-## Setup (one time only)
+## Setup (optional — for custom style)
 
-1. Open a **FigJam** file and draw a connector arrow
-2. Style it as you like (colour, weight, line type, arrowhead)
-3. Copy + paste it into your **Figma Design** file
-4. Select the pasted connector
-5. Run **"Set source arrow"** from the command palette (`Cmd/Ctrl + /`)
+1. Draw or select any node in Figma with the stroke style you want (colour, weight)
+2. Run **"Set source arrow"** from the command palette (`Cmd/Ctrl + /`)
+3. The stroke style is saved via `figma.clientStorage` — persists across sessions
 
-The node ID is saved via `figma.clientStorage` — you only need to do this once per Figma client.
+If you skip this step, the plugin uses a default 2px near-black arrow.
 
 ## Usage
 
-1. Select **two frames** (source first, then target)
+1. Select **two frames** (source first, target second)
 2. `Cmd/Ctrl + /` → **"Connect frames with arrow"** → Enter
 
-The plugin clones the saved template, wires `connectorStart` and `connectorEnd` to your frames, and names the layer `Arrow: [source] \u2192 [target]`.
+The plugin draws a straight arrow from the centre of the first frame to the centre of the second, grouped as `Arrow: [source] → [target]`.
 
 ## Commands
 
-| Command | What to select | Effect |
+| Command | Select | Effect |
 |---|---|---|
-| Set source arrow | One ConnectorNode | Saves its ID as the template |
-| Connect frames with arrow | Two frames/nodes | Clones template and connects them |
+| Set source arrow | Any styled node | Saves its stroke colour + weight |
+| Connect frames with arrow | Two frames/nodes | Draws a vector arrow between them |
+
+## Default arrow style
+
+| Property | Value |
+|---|---|
+| Stroke weight | 2px |
+| Colour | `#1A1A1A` (near-black) |
+| Arrowhead length | 12px |
+| Arrowhead width | 8px |
 
 ## Loading in Figma
 
@@ -42,9 +49,3 @@ The plugin clones the saved template, wires `connectorStart` and `connectorEnd` 
 ├── code.js         # Compiled JS (what Figma runs)
 └── README.md
 ```
-
-## Notes
-
-- The template connector is never deleted — hide it off-canvas
-- You can update the template any time by selecting a different ConnectorNode and re-running "Set source arrow"
-- `figma.command` (not `figma.on('run', ...)`) is the correct API for branching menu commands in no-UI plugins
