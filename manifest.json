@@ -1,0 +1,16 @@
+{
+  "name": "Arrow Connector",
+  "id": "arrow-connector",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
+  "commandPalette": [
+    {
+      "name": "Connect frames with arrow",
+      "command": "connectFrames"
+    }
+  ]
+}
