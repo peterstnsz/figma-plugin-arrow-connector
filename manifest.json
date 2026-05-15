@@ -7,7 +7,7 @@
   "networkAccess": {
     "allowedDomains": ["none"]
   },
-  "commandPalette": [
+  "menu": [
     {
       "name": "Connect frames with arrow",
       "command": "connectFrames"
