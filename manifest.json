@@ -9,6 +9,10 @@
   },
   "menu": [
     {
+      "name": "Set source arrow",
+      "command": "setSource"
+    },
+    {
       "name": "Connect frames with arrow",
       "command": "connectFrames"
     }

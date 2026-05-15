@@ -1,48 +1,60 @@
 // Arrow Connector Plugin
-// Clones a ConnectorNode (pasted from FigJam) and rewires it between two selected frames.
 //
-// Selection order:
-//   1. The ConnectorNode template (pasted from FigJam)
-//   2. The source frame (arrow starts here)
-//   3. The target frame (arrow ends here)
+// Commands:
+//   setSource      — select a ConnectorNode (pasted from FigJam) to use as the template
+//   connectFrames  — select two frames; clones the saved template and wires them up
 
-figma.on('run', ({ command }: RunEvent) => {
-  if (command === 'connectFrames') {
-    connectWithArrow();
-  }
-});
+const STORAGE_KEY = 'connectorTemplateId';
 
-function connectWithArrow(): void {
+async function setSource(): Promise<void> {
   const selection = figma.currentPage.selection;
 
-  if (selection.length !== 3) {
-    figma.notify(
-      'Select 3 items in order: (1) ConnectorNode template, (2) source frame, (3) target frame.',
-      { error: true }
-    );
+  if (selection.length !== 1 || selection[0].type !== 'CONNECTOR') {
+    figma.notify('Select exactly one ConnectorNode (pasted from FigJam) first.', { error: true });
     figma.closePlugin();
     return;
   }
 
-  const [template, nodeA, nodeB] = selection;
+  const connector = selection[0] as ConnectorNode;
+  await figma.clientStorage.setAsync(STORAGE_KEY, connector.id);
+  figma.notify(`Template saved: "${connector.name}"`);
+  figma.closePlugin();
+}
 
-  if (template.type !== 'CONNECTOR') {
-    figma.notify(
-      'First selected item must be a ConnectorNode (paste one from FigJam first).',
-      { error: true }
-    );
+async function connectFrames(): Promise<void> {
+  const templateId = await figma.clientStorage.getAsync(STORAGE_KEY);
+
+  if (!templateId) {
+    figma.notify('No template set. Run "Set source arrow" first.', { error: true });
     figma.closePlugin();
     return;
   }
+
+  const template = figma.getNodeById(templateId as string);
+
+  if (!template || template.type !== 'CONNECTOR') {
+    figma.notify('Saved template not found. Run "Set source arrow" again.', { error: true });
+    figma.closePlugin();
+    return;
+  }
+
+  const selection = figma.currentPage.selection;
+
+  if (selection.length !== 2) {
+    figma.notify('Select exactly two frames to connect.', { error: true });
+    figma.closePlugin();
+    return;
+  }
+
+  const [nodeA, nodeB] = selection as SceneNode[];
 
   if (!('x' in nodeA) || !('x' in nodeB)) {
-    figma.notify('Source and target must be positioned nodes (frames, shapes, etc.)', { error: true });
+    figma.notify('Selected items must be positioned nodes (frames, shapes, etc.)', { error: true });
     figma.closePlugin();
     return;
   }
 
-  // Clone the connector to inherit all styling
-  const connector = template.clone() as ConnectorNode;
+  const connector = (template as ConnectorNode).clone();
 
   connector.connectorStart = {
     endpointNodeId: nodeA.id,
@@ -57,7 +69,15 @@ function connectWithArrow(): void {
   connector.name = `Arrow: ${nodeA.name} \u2192 ${nodeB.name}`;
 
   figma.currentPage.appendChild(connector);
-
   figma.notify(`Connected "${nodeA.name}" \u2192 "${nodeB.name}"`);
+  figma.closePlugin();
+}
+
+// figma.command is the correct way to branch on menu commands (not figma.on('run'))
+if (figma.command === 'setSource') {
+  setSource();
+} else if (figma.command === 'connectFrames') {
+  connectFrames();
+} else {
   figma.closePlugin();
 }
